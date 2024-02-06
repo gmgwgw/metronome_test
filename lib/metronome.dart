@@ -28,7 +28,7 @@ class _MetronomeState extends State<Metronome> {
 
   Future<void> _init() async {
     try {
-      await _player.setAsset('assets/pi.mp3');
+      await _player.setAsset('assets/click.mp3');
     } catch (e) {
       // エラー処理
       print("An error occurred: ${e.toString()}");
