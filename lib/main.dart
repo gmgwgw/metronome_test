@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+
+import './metronome.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,42 +21,6 @@ class MyApp extends StatelessWidget {
       ),
       home: const MyHomePage(title: 'Metronome Test'),
     );
-  }
-}
-
-@override
-class Metronome extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return _MetronomeState();
-  }
-}
-
-class _MetronomeState extends State<Metronome> {
-  int _time = 1;
-
-  @override
-  void initState() {
-    Timer.periodic(
-      const Duration(seconds: 1),
-      _onTimer,
-    );
-    super.initState();
-  }
-
-  void _onTimer(Timer timer) {
-    int nextTime;
-    if (_time >= 4) {
-      nextTime = 1;
-    } else {
-      nextTime = _time + 1;
-    }
-    setState(() => _time = nextTime);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('$_time');
   }
 }
 
