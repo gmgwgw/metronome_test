@@ -1,54 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'dart:async';
+import './providers.dart';
 
 @override
-class Metronome extends StatefulWidget {
+class Metronome extends ConsumerStatefulWidget {
   const Metronome({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _MetronomeState();
-  }
+  MetronomeState createState() => MetronomeState();
 }
 
-class _MetronomeState extends State<Metronome> {
-  int _time = 1;
-  final _player = AudioPlayer();
-
+class MetronomeState extends ConsumerState<Metronome> {
+  var metro = Metro();
+  // 初期化
   @override
   void initState() {
-    Timer.periodic(
-      const Duration(milliseconds: 300),
-      _onTimer,
-    );
-    _init();
     super.initState();
   }
 
-  Future<void> _init() async {
-    try {
-      await _player.setAsset('assets/click.mp3');
-    } catch (e) {
-      // エラー処理
-      print("An error occurred: ${e.toString()}");
-    }
-  }
-
-  void _onTimer(Timer timer) {
-    int nextTime;
-    if (_time >= 4) {
-      nextTime = 1;
-    } else {
-      nextTime = _time + 1;
-    }
-    Timer.run(() => _player.play());
-    Timer.run(() => _player.seek(const Duration(seconds: 0)));
-    setState(() => _time = nextTime);
+  // 破棄された時の処理
+  @override
+  void dispose() {
+    metro.cancelTimer();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text('$_time');
+    final isRunning = ref.watch(isRunningProvider);
+    final bpm = ref.watch(beatsProvider).bpm;
+    if (isRunning) {
+      metro.startTimer(bpm);
+      return const Text('STOP');
+    } else {
+      metro.cancelTimer();
+      return const Text('START');
+    }
+  }
+}
+
+class Metro {
+  final player = AudioPlayer();
+  Timer? timer;
+
+  // Timer開始
+  Future<void> startTimer(int bpm) async {
+    try {
+      await player.setAsset('assets/click.mp3');
+    } catch (e) {
+      print("An error occurred: ${e.toString()}");
+    }
+    // int型にするしかないけど精度怪しくなりそう
+    int period = 60 * 1000 * 1000 ~/ bpm;
+    timer = Timer.periodic(
+      Duration(microseconds: period),
+      _onTimer,
+    );
+  }
+
+  // Timer停止
+  void cancelTimer() {
+    if (timer != null) {
+      timer!.cancel();
+      timer = null;
+    }
+  }
+
+  // Timerから呼び出す処理
+  void _onTimer(Timer timer) {
+    Timer.run(() => player.play());
+    Timer.run(() => player.seek(const Duration(seconds: 0)));
   }
 }
